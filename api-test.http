@@ -1,0 +1,132 @@
+### =========================================================================
+### Uji API dengan extension VS Code "REST Client" (Huachao Mao).
+### Klik tulisan "Send Request" di atas setiap request.
+### Cookie login tersimpan otomatis, jadi jalankan "Login" lebih dulu.
+### =========================================================================
+
+@baseUrl = http://localhost:3000/api
+# @baseUrl = https://nama-project.vercel.app/api
+@deviceKey = isi-sama-dengan-DEVICE_KEY
+
+### ---------- SESSION ----------
+
+### Login admin
+POST {{baseUrl}}/session
+Content-Type: application/json
+
+{ "username": "admin", "password": "admin123" }
+
+### Akun yang sedang login
+GET {{baseUrl}}/session
+
+### Logout
+DELETE {{baseUrl}}/session
+
+### ---------- TENANTS ----------
+
+### Daftar tenant
+GET {{baseUrl}}/tenants
+
+### Tambah tenant (alokasi arus dalam ampere)
+POST {{baseUrl}}/tenants
+Content-Type: application/json
+
+{ "id": "ESP32-002", "name": "Kopi Senja", "location": "Booth B2", "limitA": 2 }
+
+### Detail tenant
+GET {{baseUrl}}/tenants/ESP32-001
+
+### Naikkan alokasi arus (admin) -> event ALLOC_INCREASED, permintaan tambah arus otomatis selesai
+PATCH {{baseUrl}}/tenants/ESP32-001
+Content-Type: application/json
+
+{ "limitA": 2.5 }
+
+### Hapus tenant
+DELETE {{baseUrl}}/tenants/ESP32-002
+
+### ---------- OUTLETS (2 colokan) ----------
+
+### Status kedua colokan
+GET {{baseUrl}}/tenants/ESP32-001/outlets
+
+### Nyalakan colokan 1 (boleh pemilik tenant)
+PUT {{baseUrl}}/tenants/ESP32-001/outlets/1
+Content-Type: application/json
+
+{ "command": "ON" }
+
+### Nyalakan colokan 2 (pemilik tenant -> 403, admin -> 200)
+PUT {{baseUrl}}/tenants/ESP32-001/outlets/2
+Content-Type: application/json
+
+{ "command": "ON" }
+
+### Matikan colokan 2
+PUT {{baseUrl}}/tenants/ESP32-001/outlets/2
+Content-Type: application/json
+
+{ "command": "OFF" }
+
+### ---------- REQUESTS (permintaan tenant ke pengelola) ----------
+
+### Status permintaan
+GET {{baseUrl}}/tenants/ESP32-001/requests
+
+### Minta izin colokan 2
+POST {{baseUrl}}/tenants/ESP32-001/requests
+Content-Type: application/json
+
+{ "type": "outlet2" }
+
+### Minta tambah alokasi arus
+POST {{baseUrl}}/tenants/ESP32-001/requests
+Content-Type: application/json
+
+{ "type": "allocation" }
+
+### Tolak / batalkan permintaan colokan 2
+DELETE {{baseUrl}}/tenants/ESP32-001/requests/outlet2
+
+### ---------- READINGS ----------
+
+### Kirim pembacaan (meniru ESP32): arus total 1,7 A = 85% dari 2 A -> peringatan
+POST {{baseUrl}}/tenants/ESP32-001/readings
+Content-Type: application/json
+X-Device-Key: {{deviceKey}}
+
+{ "voltage": 12.02, "current": 1.7, "outlet1": "ON", "outlet2": "ON", "tripped": false }
+
+### Pembacaan 1 jam terakhir
+GET {{baseUrl}}/tenants/ESP32-001/readings?limit=20
+
+### ---------- USAGE & EVENTS ----------
+
+### Arus rata-rata & puncak per jam (24 jam terakhir, WIB) + jumlah over-limit
+GET {{baseUrl}}/tenants/ESP32-001/usage?bucket=3600&tz=Asia/Jakarta
+
+### Log kejadian
+GET {{baseUrl}}/tenants/ESP32-001/events?limit=10
+
+### ---------- USERS (admin) ----------
+
+### Daftar akun
+GET {{baseUrl}}/users
+
+### Buat akun pemilik tenant
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{ "username": "budi", "password": "budi123", "name": "Budi (Kopi Senja)", "role": "tenant" }
+
+### Detail akun
+GET {{baseUrl}}/users/2
+
+### Ganti password
+PATCH {{baseUrl}}/users/2
+Content-Type: application/json
+
+{ "password": "passwordbaru" }
+
+### Hapus akun
+DELETE {{baseUrl}}/users/2
