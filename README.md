@@ -227,3 +227,6 @@ Untuk membuka database saat demo: Neon Console → **Tables** atau **SQL Editor*
 | ESP32: `HTTP 503` | `DEVICE_KEY` belum diisi di Vercel |
 | ESP32: `HTTP -1` | Wi-Fi bukan 2.4 GHz, atau `SERVER_URL` salah |
 | Login di Vercel tidak bisa | `AUTH_SECRET` belum diisi di Vercel (lalu Redeploy) |
+
+
+Ini udah di deploy ke vercel (lagi ngetest aja)
